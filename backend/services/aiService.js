@@ -65,7 +65,7 @@ Rules:
 
     const response = await ollama.chat({
 
-    model:"llama3.2:3b",
+      model: "qwen2.5:3b",
 
     messages:[
         {

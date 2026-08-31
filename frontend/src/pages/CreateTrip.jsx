@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateAITrip } from "../api/tripApi";
+import { generateAITrip, createTrip } from "../api/tripApi";
 import { useNavigate } from "react-router-dom";
 import { getCoordinates } from "../api/locationApi";
 import createTripBg from "../assets/create-trip-bg.jpg";
@@ -62,20 +62,43 @@ const handleSubmit = async (e) => {
 
         const response = await generateAITrip(trip);
 
-        console.log("AI Response:", response.data);
+console.log("AI Response:", response.data);
 
-        const parsedItinerary = response.data.itinerary;
+const parsedItinerary = response.data.itinerary;
 
-        navigate("/trip-details", {
-            state: {
-                itinerary: parsedItinerary,
-                trip: {
-                    ...trip,
-                    lat,
-                    lon
-                }
-            }
-        });
+
+// Prepare trip data for backend
+const tripToSave = {
+    destination: trip.place,
+    start_date: null,
+    end_date: null,
+    days: Number(trip.days),
+    adults: Number(trip.people),
+    children: 0,
+    budget: Number(trip.budget),
+    travel_style: trip.travel_style,
+    interests: `${trip.district}, ${trip.state}`,
+    itinerary: parsedItinerary
+};
+
+
+// Save trip to database
+const saveResponse = await createTrip(tripToSave);
+
+console.log("Trip saved:", saveResponse.data);
+
+
+// Navigate to trip details
+navigate("/trip-details", {
+    state: {
+        itinerary: parsedItinerary,
+        trip: {
+            ...trip,
+            lat,
+            lon
+        }
+    }
+});
 
     } catch (error) {
     console.error("FULL ERROR:", error);
