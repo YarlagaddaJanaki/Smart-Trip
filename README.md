@@ -80,7 +80,7 @@ Smart-Trip/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/suma-mokkala/Smart-Trip.git
+git clone https://github.com/YarlagaddaJanaki/Smart-Trip.git
 ```
 
 ### 2. Navigate to Project
@@ -144,17 +144,22 @@ npm run dev
 
 ## 📸 Screenshots
 
-Add screenshots of your application here.
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/8798b504-0787-4a2a-a9c3-5c09cf315efc" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/134b2793-aa11-4fde-b2d3-854340299046" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/81d9a36f-ea90-4e80-a728-3e65b04addf5" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7f88a0e6-a29a-4d20-a275-427cc929fa69" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/106f2717-f66b-45a4-a591-93a87ac914ed" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2c0e959f-2d69-45e2-b63f-81febf3ff5b5" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a151eddd-5de4-4a09-846e-d378c9912931" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ab6977d3-3abb-4c39-9c49-7ced959ba193" />
 
-- Home Page
-- Login Page
-- Dashboard
-- Create Trip
-- AI Generated Itinerary
-- Saved Trips
-- Profile Page
 
----
+
+
+
+
+
+
 
 ## 🔮 Future Enhancements
 
@@ -171,10 +176,10 @@ Add screenshots of your application here.
 
 ## 👨‍💻 Author
 
-**Jaya Suma Poleru Mokkala**
+**Yarlagadda Janaki**
 
 GitHub:
-https://github.com/suma-mokkala
+https://github.com/YarlagaddaJanaki
 
 ---
 
