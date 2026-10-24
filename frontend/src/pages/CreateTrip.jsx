@@ -1,285 +1,35 @@
 import { useState } from "react";
-import { generateAITrip, createTrip } from "../api/tripApi";
+import { FiArrowLeft, FiCalendar, FiChevronDown, FiCompass, FiDollarSign, FiMapPin, FiStar, FiUsers } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { generateAITrip, createTrip } from "../api/tripApi";
 import { getCoordinates } from "../api/locationApi";
-import createTripBg from "../assets/create-trip-bg.jpg";
-import LoadingSpinner from "../components/LoadingSpinner";
+
+const initialTrip = { place: "", district: "", state: "", people: "2", days: "5", budget: "", travel_style: "", start_date: "", end_date: "" };
+const styles = ["Nature", "Adventure", "Cultural", "Family", "Spiritual", "Luxury"];
+
 function CreateTrip() {
+  const navigate = useNavigate();
+  const [trip, setTrip] = useState(initialTrip);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const handleChange = (event) => setTrip((current) => ({ ...current, [event.target.name]: event.target.value }));
 
-    const navigate = useNavigate();
-
-    const [loading, setLoading] = useState(false);
-
-
-    const [trip, setTrip] = useState({
-
-        place: "",
-        district: "",
-        state: "",
-        people: "",
-        days: "",
-        budget: "",
-        travel_style: ""
-
-    });
-
-
-
-    const handleChange = (e) => {
-
-        setTrip({
-
-            ...trip,
-
-            [e.target.name]: e.target.value
-
-        });
-
-    };
-
-
-const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async (event) => {
+    event.preventDefault(); setError(""); setLoading(true);
     try {
-        setLoading(true);
+      const location = await getCoordinates(trip.place, trip.district, trip.state);
+      const lat = location?.length ? Number.parseFloat(location[0].lat) : null;
+      const lon = location?.length ? Number.parseFloat(location[0].lon) : null;
+      const response = await generateAITrip(trip);
+      const itinerary = response.data.itinerary;
+      await createTrip({ destination: trip.place, start_date: trip.start_date || null, end_date: trip.end_date || null, days: Number(trip.days), adults: Number(trip.people), children: 0, budget: Number(trip.budget), travel_style: trip.travel_style, interests: `${trip.district}, ${trip.state}`, itinerary });
+      navigate("/trip-details", { state: { itinerary, trip: { ...trip, lat, lon } } });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "We couldn&apos;t create your itinerary. Please check your details and try again.");
+    } finally { setLoading(false); }
+  };
 
-        console.log("Sending trip:", trip);
-
-        const location = await getCoordinates(
-            trip.place,
-            trip.district,
-            trip.state
-        );
-
-        let lat = null;
-        let lon = null;
-
-        if (location.length > 0) {
-            lat = parseFloat(location[0].lat);
-            lon = parseFloat(location[0].lon);
-        }
-
-        const response = await generateAITrip(trip);
-
-console.log("AI Response:", response.data);
-
-const parsedItinerary = response.data.itinerary;
-
-
-// Prepare trip data for backend
-const tripToSave = {
-    destination: trip.place,
-    start_date: null,
-    end_date: null,
-    days: Number(trip.days),
-    adults: Number(trip.people),
-    children: 0,
-    budget: Number(trip.budget),
-    travel_style: trip.travel_style,
-    interests: `${trip.district}, ${trip.state}`,
-    itinerary: parsedItinerary
-};
-
-
-// Save trip to database
-const saveResponse = await createTrip(tripToSave);
-
-console.log("Trip saved:", saveResponse.data);
-
-
-// Navigate to trip details
-navigate("/trip-details", {
-    state: {
-        itinerary: parsedItinerary,
-        trip: {
-            ...trip,
-            lat,
-            lon
-        }
-    }
-});
-
-    } catch (error) {
-    console.error("FULL ERROR:", error);
-
-    if (error.response) {
-        console.log("Backend Response:", error.response.data);
-    }
-
-    if (error.stack) {
-        console.log(error.stack);
-    }
-
-    alert(error.message);
-} finally {
-        setLoading(false);
-    }
-};
-if (loading) {
-    return <LoadingSpinner />;
+  const inputClass = "mt-2 w-full rounded-xl border border-[#dfe7e0] bg-white px-4 py-3.5 text-sm text-[#183d32] outline-none transition placeholder:text-[#9aa69f] focus:border-[#183d32] focus:ring-4 focus:ring-[#183d32]/10";
+  return <main className="min-h-screen bg-[#f8f8f5] text-[#17251f]"><nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10"><button onClick={() => navigate("/dashboard")} className="flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#183d32] text-white"><FiCompass /></span><span className="text-lg font-semibold">Smart<span className="text-[#da704c]">Trip</span></span></button><button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-sm font-medium text-[#64716a]"><FiArrowLeft /> Back to home</button></nav><div className="mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-8 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10 lg:pt-16"><div className="lg:sticky lg:top-10 lg:h-fit"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.18em] text-[#da704c]"><FiStar /> Your trip, thoughtfully made</p><h1 className="mt-5 text-5xl font-semibold leading-[1.05] tracking-[-.05em]">Let&apos;s make a plan worth <span className="font-serif italic text-[#da704c]">remembering.</span></h1><p className="mt-6 max-w-md text-base leading-7 text-[#6d7a72]">Share a few details and our AI will turn your wish list into a day-by-day adventure with stays, stops, and smart budget ideas.</p><div className="mt-10 hidden rounded-2xl bg-[#e9f0e9] p-5 sm:block"><p className="text-sm font-semibold text-[#183d32]">What you&apos;ll get</p><ul className="mt-3 space-y-3 text-sm text-[#64716a]"><li>• A route designed around your pace</li><li>• Local ideas beyond the obvious</li><li>• A clear, realistic budget snapshot</li></ul></div></div><form onSubmit={handleSubmit} className="rounded-[2rem] border border-[#e1e8e1] bg-white p-6 shadow-[0_18px_60px_rgba(24,61,50,.08)] sm:p-9"><div className="mb-8 border-b border-[#edf0ec] pb-6"><h2 className="text-2xl font-semibold">Tell us about your trip</h2><p className="mt-1 text-sm text-[#7b877f]">The more we know, the more personal it becomes.</p></div><div className="grid gap-5 sm:grid-cols-2"><label className="sm:col-span-2 text-sm font-semibold">Where are you going?<span className="relative"><FiMapPin className="pointer-events-none absolute -right-7 top-1 text-[#da704c]" /></span><input className={inputClass} name="place" value={trip.place} onChange={handleChange} placeholder="e.g. Bali, Indonesia" required /></label><label className="text-sm font-semibold">District / city<input className={inputClass} name="district" value={trip.district} onChange={handleChange} placeholder="e.g. Ubud" required /></label><label className="text-sm font-semibold">State / region<input className={inputClass} name="state" value={trip.state} onChange={handleChange} placeholder="e.g. Bali" required /></label><label className="text-sm font-semibold">Start date<input className={inputClass} type="date" name="start_date" value={trip.start_date} onChange={handleChange} /><FiCalendar className="relative -top-9 right-4 float-right text-[#8e9a92]" /></label><label className="text-sm font-semibold">End date<input className={inputClass} type="date" name="end_date" value={trip.end_date} onChange={handleChange} /><FiCalendar className="relative -top-9 right-4 float-right text-[#8e9a92]" /></label><label className="text-sm font-semibold">Travellers<input className={inputClass} type="number" min="1" max="20" name="people" value={trip.people} onChange={handleChange} required /><FiUsers className="relative -top-9 right-4 float-right text-[#8e9a92]" /></label><label className="text-sm font-semibold">Days<input className={inputClass} type="number" min="1" max="30" name="days" value={trip.days} onChange={handleChange} required /></label><label className="text-sm font-semibold">Total budget<input className={inputClass} type="number" min="1" name="budget" value={trip.budget} onChange={handleChange} placeholder="e.g. 80000" required /><FiDollarSign className="relative -top-9 right-4 float-right text-[#8e9a92]" /></label><label className="relative text-sm font-semibold sm:col-span-2">Travel mood<select className={`${inputClass} appearance-none`} name="travel_style" value={trip.travel_style} onChange={handleChange} required><option value="">Choose a style</option>{styles.map((style) => <option key={style} value={style}>{style}</option>)}</select><FiChevronDown className="pointer-events-none absolute bottom-4 right-4 text-[#8e9a92]" /></label></div>{error && <p role="alert" className="mt-5 rounded-xl bg-[#fff0ec] px-4 py-3 text-sm text-[#b54e37]">{error}</p>}<button disabled={loading} className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-[#183d32] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[#245744] disabled:cursor-wait disabled:opacity-70">{loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> Building your itinerary...</> : <><FiStar /> Generate my itinerary</>}</button><p className="mt-4 text-center text-xs text-[#8b968f]">Your trip will be saved securely to your Smart Trip account.</p></form></div></main>;
 }
-
-    return (
-
-<div
-    className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center p-8"
-    style={{
-        backgroundImage: `url(${createTripBg})`
-    }}
->
-
-    <div
-        className="
-        w-full
-        max-w-5xl
-        rounded-3xl
-        bg-white/75
-        backdrop-blur-xl
-        shadow-2xl
-        border border-white/40
-        p-10
-        "
-    >
-
-        <h1
-            className="
-            text-5xl
-            font-extrabold
-            text-center
-            mb-3
-            bg-gradient-to-r
-            from-emerald-600
-            via-cyan-600
-            to-blue-700
-            bg-clip-text
-            text-transparent
-            "
-        >
-            🌍 Smart Trip
-        </h1>
-
-        <p className="text-center text-gray-700 text-lg mb-10">
-            Create your personalized AI-powered travel itinerary
-        </p>
-
-        <form
-            onSubmit={handleSubmit}
-            className="space-y-8"
-        >
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <input
-                    type="text"
-                    name="place"
-                    placeholder="📍 Place"
-                    value={trip.place}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <input
-                    type="text"
-                    name="district"
-                    placeholder="🏙 District"
-                    value={trip.district}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <input
-                    type="text"
-                    name="state"
-                    placeholder="🌍 State"
-                    value={trip.state}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <input
-                    type="number"
-                    name="people"
-                    placeholder="👥 Travellers"
-                    value={trip.people}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <input
-                    type="number"
-                    name="days"
-                    placeholder="📅 Number of Days"
-                    value={trip.days}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <input
-                    type="text"
-                    name="budget"
-                    placeholder="💰 Budget (₹)"
-                    value={trip.budget}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                />
-
-                <select
-                    name="travel_style"
-                    value={trip.travel_style}
-                    onChange={handleChange}
-                    className="rounded-xl border border-gray-300 bg-white/90 px-4 py-3 focus:outline-none focus:ring-4 focus:ring-cyan-300"
-                    required
-                >
-                    <option value="">✈ Select Travel Style</option>
-                    <option value="Nature">🌿 Nature</option>
-                    <option value="Adventure">🏕 Adventure</option>
-                    <option value="Cultural">🏛 Cultural</option>
-                    <option value="Family">👨‍👩‍👧 Family</option>
-                    <option value="Spiritual">🛕 Spiritual</option>
-                    <option value="Luxury">🏨 Luxury</option>
-                </select>
-
-                <div></div>
-
-            </div>
-
-            <div className="flex justify-center mt-6">
-    <button
-        type="submit"
-        disabled={loading}
-        className={`w-64 py-3 rounded-xl font-bold text-lg text-white transition-all duration-300 ${
-            loading
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:scale-105 hover:shadow-2xl"
-        }`}
-    >
-        {loading ? (
-            <div className="flex justify-center items-center gap-3">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating...
-            </div>
-        ) : (
-            "✨ Generate Trip"
-        )}
-    </button>
-</div>
-
-        </form>
-
-    </div>
-
-</div>
-
-    );
-
-}
-
-
 export default CreateTrip;
