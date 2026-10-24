@@ -1,7 +1,7 @@
 {
   "framework": "vite",
   "devCommand": "npm run dev -- --host 0.0.0.0",
-  "installCommand": "npm ci --prefix frontend",
-  "buildCommand": "npm run build --prefix frontend",
-  "outputDirectory": "frontend/dist"
+  "installCommand": "npm ci --prefix ./frontend",
+  "buildCommand": "npm run build --prefix ./frontend",
+  "outputDirectory": "./frontend/dist"
 }
