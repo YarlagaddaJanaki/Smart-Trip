@@ -1,112 +1,137 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../api/authApi";
-import authBg from "../assets/auth-bg.jpg";
 import Swal from "sweetalert2";
+import "./Login.css";
+
 function Login() {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleLogin = async () => {
+    const handleLogin = async (event) => {
+        event.preventDefault();
+
         try {
-            const response = await loginUser({
-                email,
-                password,
-            });
+            setIsSubmitting(true);
+
+            const response = await loginUser({ email, password });
 
             localStorage.setItem("token", response.data.token);
+            localStorage.setItem("user", JSON.stringify(response.data.user));
 
-            localStorage.setItem(
-                "user",
-                JSON.stringify(response.data.user)
-            );
+            await Swal.fire({
+                title: "Smart Trip",
+                text: "Login Successful!",
+                icon: "success",
+                confirmButtonColor: "#193b30",
+                background: "#fffdf8",
+                color: "#193b30"
+            });
 
-Swal.fire({
-    title: "Smart Trip",
-    text: "Login Successful!",
-    icon: "success",
-    confirmButtonColor: "#06b6d4"
-});
             navigate("/dashboard");
-
         } catch (error) {
-            alert(
-                error.response?.data?.message || "Login Failed"
-            );
+            Swal.fire({
+                title: "Login Failed",
+                text: error.response?.data?.message || "Login Failed",
+                icon: "error",
+                confirmButtonColor: "#193b30",
+                background: "#fffdf8",
+                color: "#193b30"
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div
-            className="min-h-screen flex items-center justify-end bg-cover bg-center bg-no-repeat relative px-40"
-            style={{
-                backgroundImage: `url(${authBg})`
-            }}
-        >
-            {/* Brighter Overlay */}
-            <div className="absolute inset-0 bg-white/20"></div>
+        <main className="login-page">
+            <div className="login-decoration login-decoration-one" aria-hidden="true" />
+            <div className="login-decoration login-decoration-two" aria-hidden="true" />
 
-            {/* Login Card */}
-            <div className="relative w-full max-w-md px-4">
+            <section className="login-layout">
+                <div className="login-intro">
+                    <Link to="/" className="login-brand" aria-label="Smart Trip">
+                        <span className="login-brand-icon" aria-hidden="true">✦</span>
+                        <span>smart<span className="login-brand-accent">trip</span></span>
+                    </Link>
 
-                {/* Gradient Background */}
-<div className="rounded-3xl shadow-2xl">
-                    {/* White Form */}
-                    <div className="bg-blue-50 rounded-3xl shadow-2xl p-8">
+                    <p className="login-eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+                    <h1>Every journey<br />starts with a <em>hello.</em></h1>
+                    <p className="login-intro-copy">
+                        Welcome back to Smart Trip. Your next great discovery
+                        is just around the corner.
+                    </p>
 
-                        <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">
-                            ✈ Smart Trip
-                        </h1>
-
-                        <input
-                            type="email"
-                            placeholder="Email Address"
-                            className="w-full p-4 rounded-xl border border-gray-300 mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            className="w-full p-4 rounded-xl border border-gray-300 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        <button
-                            onClick={handleLogin}
-                            className="w-full py-4 rounded-xl text-lg font-semibold text-white
-                            bg-linear-to-r
-                            from-emerald-500
-                            via-teal-500
-                            to-cyan-600
-                            hover:scale-105
-                            hover:shadow-xl
-                            transition-all duration-300"
-                        >
-                            Login
-                        </button>
-
-                        <p className="text-center mt-6 text-gray-600">
-                            Don't have an account?{" "}
-                            <Link
-                                to="/register"
-                                className="text-blue-600 font-bold hover:text-blue-800 transition-all"
-                            >
-                                Register
-                            </Link>
-                        </p>
-
+                    <div className="login-travel-note">
+                        <span className="login-note-icon" aria-hidden="true">↗</span>
+                        <div>
+                            <strong>Pick up where you left off.</strong>
+                            <span>Your next adventure is waiting.</span>
+                        </div>
                     </div>
-
                 </div>
 
-            </div>
+                <div className="login-card">
+                    <div className="login-card-heading">
+                        <span className="login-card-kicker">WELCOME BACK</span>
+                        <h2>Log in to Smart Trip</h2>
+                        <p>Enter your details to continue your journey.</p>
+                    </div>
 
-        </div>
+                    <form onSubmit={handleLogin} className="login-form">
+                        <label className="login-field">
+                            <span>Email address</span>
+                            <input
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                autoComplete="email"
+                                required
+                            />
+                        </label>
+                      <label className="login-field">
+                            <span>Password</span>
+                            <div className="login-password-wrap">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(event) => setPassword(event.target.value)}
+                                    autoComplete="current-password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="login-password-toggle"
+                                    onClick={() => setShowPassword((current) => !current)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? "Hide" : "Show"}
+                                </button>
+                            </div>
+                        </label>
+
+                        <button type="submit" className="login-submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Logging in..." : "Log in"}
+                            {!isSubmitting && <span aria-hidden="true">↗</span>}
+                        </button>
+                    </form>
+
+                    <p className="login-register-prompt">
+                        Don't have an account? <Link to="/register">Create one</Link>
+                    </p>
+
+                    <div className="login-card-footer">
+                        <span aria-hidden="true">✦</span> Made for curious travellers
+                    </div>
+                </div>
+            </section>
+        </main>
     );
 }
 

@@ -1,190 +1,152 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSavedTrips } from "../api/saveTripApi";
-
-import profileBg from "../assets/profile-bg.jpg";
 import LoadingSpinner from "../components/LoadingSpinner";
+import "./Profile.css";
 
 function Profile() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch (error) {
+    console.error("Unable to read saved user information:", error);
+  }
 
-    const user = JSON.parse(localStorage.getItem("user"));
+  const [loading, setLoading] = useState(true);
+  const [tripCount, setTripCount] = useState(0);
 
-    const [loading, setLoading] = useState(true);
-    const [tripCount, setTripCount] = useState(0);
-
-    useEffect(() => {
-        fetchTrips();
-    }, []);
+  useEffect(() => {
+    let isMounted = true;
 
     const fetchTrips = async () => {
+      try {
+        const response = await getSavedTrips();
+        const trips = response.data?.trips;
 
-        try {
-
-            setLoading(true);
-
-            const response = await getSavedTrips();
-
-            setTripCount(response.data.trips.length);
-
-        } catch (error) {
-
-            console.error(error);
-
-        } finally {
-
-            setLoading(false);
-
+        if (isMounted) {
+          setTripCount(Array.isArray(trips) ? trips.length : 0);
         }
-
+      } catch (error) {
+        console.error(
+          "Unable to load saved trips count:",
+          error.response?.data || error
+        );
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
-    const handleLogout = () => {
+    fetchTrips();
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        navigate("/");
-
+    return () => {
+      isMounted = false;
     };
+  }, []);
 
-    if (loading) {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
-        return <LoadingSpinner />;
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-    }
+  return (
+    <main className="profile-page">
+      <div className="profile-layout">
+        <section className="profile-intro">
+          <p className="profile-eyebrow">YOUR SPACE, YOUR JOURNEY</p>
+          <h1>
+            Every journey
+            <br />
+            starts <em>with you.</em>
+          </h1>
+          <p className="profile-intro-copy">
+            Your travel details, your saved adventures, and everything you
+            need for your next journey — all in one place.
+          </p>
 
-    return (
-
-<div
-    className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-end pr-30"
-    style={{
-        backgroundImage: `url(${profileBg})`
-    }}
->
-
-    {/* Bright Background */}
-
-    <div className="absolute inset-0 bg-white/10"></div>
-
-    {/* Profile Card */}
-
-    <div
-        className="
-relative
-w-full
-max-w-sm
-rounded-3xl
-bg-white/70
-backdrop-blur-xl
-border border-white/30
-shadow-2xl
-p-7
-"
-    >
-
-        {/* Avatar */}
-
-        <div className="flex justify-center mb-6">
-
-            
-
-        </div>
-
-        {/* Heading */}
-<h1
-    className="
-    text-2xl
-    font-bold
-    text-center
-    bg-gradient-to-r
-    from-emerald-600
-    via-cyan-600
-    to-blue-700
-    bg-clip-text
-    text-transparent
-    mb-2
-    "
->
-    My Profile
-</h1>
-
-        <p className="text-center text-gray-700 mt-3 mb-8">
-            Welcome back to Smart Trip
-        </p>
-
-        {/* Details */}
-
-        <div className="space-y-5">
-
-            <div className="bg-white/80 rounded-2xl p-5 shadow-lg">
-
-                <p className="text-gray-500 text-sm">
-                    Full Name
-                </p>
-
-                <h2 className="text-xl font-bold text-gray-800">
-                    {user?.name}
-                </h2>
-
+          <div className="profile-note">
+            <span className="profile-note-icon" aria-hidden="true">✦</span>
+            <div>
+              <h2>Your travel story</h2>
+              <p>
+                Keep exploring, collecting memories, and planning somewhere
+                wonderful.
+              </p>
             </div>
+          </div>
+        </section>
 
-            <div className="bg-white/80 rounded-2xl p-5 shadow-lg">
-
-                <p className="text-gray-500 text-sm">
-                    Email Address
-                </p>
-
-                <h2 className="text-xl font-bold text-gray-800 break-all">
-                    {user?.email}
-                </h2>
-
+         <section className="profile-card" aria-labelledby="profile-title">
+          <div className="profile-card-top">
+            <div className="profile-avatar" aria-hidden="true">
+              {(user?.name || "T").trim().charAt(0).toUpperCase()}
             </div>
+            <p className="profile-card-eyebrow">ACCOUNT OVERVIEW</p>
+            <h2 id="profile-title">My Profile</h2>
+            <p className="profile-welcome">Welcome back to Smart Trip</p>
+          </div>
 
-            <div className="bg-white/80 rounded-2xl p-5 shadow-lg">
+          <div className="profile-details">
+            <article className="profile-detail">
+              <span className="profile-detail-icon" aria-hidden="true">♙</span>
+              <div className="profile-detail-text">
+                <p>Full Name</p>
+                <h3>{user?.name || "Name not available"}</h3>
+              </div>
+            </article>
 
-                <p className="text-gray-500 text-sm">
-                    Saved Trips
-                </p>
+            <article className="profile-detail">
+              <span className="profile-detail-icon" aria-hidden="true">✉</span>
+              <div className="profile-detail-text">
+                <p>Email Address</p>
+                <h3 className="profile-email">
+                  {user?.email || "Email not available"}
+                </h3>
+              </div>
+            </article>
 
-                <h2 className="text-xl font-bold text-gray-800">
-                    {tripCount}
-                </h2>
+            <article className="profile-detail profile-trip-detail">
+              <span className="profile-detail-icon" aria-hidden="true">✈</span>
+              <div className="profile-detail-text">
+                <p>Saved Trips</p>
+                <h3>{tripCount}</h3>
+              </div>
+              <button
+                type="button"
+                className="profile-small-link"
+                onClick={() => navigate("/saved-trips")}
+              >
+                View trips <span aria-hidden="true">↗</span>
+              </button>
+            </article>
+          </div>
 
-            </div>
-
-        </div>
-
-        {/* Logout */}
-
-        <button
+          <button
+            type="button"
+            className="profile-logout-button"
             onClick={handleLogout}
-            className="
-            w-full
-            mt-8
-            py-3
-            rounded-xl
-            font-bold
-            text-white
-            bg-gradient-to-r
-            from-emerald-500
-            via-cyan-500
-            to-blue-600
-            hover:scale-105
-            hover:shadow-2xl
-            transition-all
-            duration-300
-            "
-        >
-            🚪 Logout
-        </button>
+          >
+            <span aria-hidden="true">↪</span>
+            Logout
+          </button>
 
-    </div>
-
-</div>
-
-);
+          <p className="profile-card-footer">
+            <span>SMART TRIP</span>
+            <span>Made for the curious.</span>
+          </p>
+        </section>
+      </div>
+    </main>
+  );
 }
 
 export default Profile;
+

@@ -39,6 +39,68 @@ app.get("/api/profile", verifyToken, (req, res) => {
     });
 });
 
+const geocodeCache = new Map();
+
+app.get("/api/geocode", async (req, res) => {
+  try {
+    const query = String(req.query.query || "").trim();
+
+    if (!query) {
+      return res.status(400).json({ message: "Destination is required" });
+    }
+
+    // Reuse previous results instead of repeatedly querying the service.
+    const cacheKey = query.toLowerCase();
+
+    if (geocodeCache.has(cacheKey)) {
+      return res.json(geocodeCache.get(cacheKey));
+    }
+
+    const url = new URL(
+      "https://nominatim.openstreetmap.org/search"
+    );
+
+    url.searchParams.set("q", query);
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("limit", "1");
+    url.searchParams.set("countrycodes", "in");
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "SmartTripAI/1.0 (destination lookup)"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({
+        message: "Geocoding service is unavailable"
+      });
+    }
+
+    const results = await response.json();
+
+    if (!results.length) {
+      return res.status(404).json({
+        message: "Location not found"
+      });
+    }
+
+    const location = {
+      lat: Number(results[0].lat),
+      lon: Number(results[0].lon),
+      displayName: results[0].display_name
+    };
+
+    geocodeCache.set(cacheKey, location);
+
+    res.json(location);
+  } catch (error) {
+    console.error("Geocoding error:", error.message);
+    res.status(500).json({ message: "Unable to find location" });
+  }
+});
+
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
