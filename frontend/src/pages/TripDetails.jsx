@@ -210,7 +210,32 @@ useEffect(() => {
             <h2>Estimated trip cost</h2>
             <p className="trip-section-description">A budget snapshot for your planned adventure.</p>
           </div>
-          <p className="trip-cost-amount">₹{Number(itinerary.total_cost ?? trip?.budget ?? 0).toLocaleString("en-IN")}</p>
+          <p className="trip-cost-amount">
+  {(() => {
+    const rawCost = itinerary.total_cost;
+    const parsedCost =
+      typeof rawCost === "number"
+        ? rawCost
+        : typeof rawCost === "string" &&
+          /^\s*₹?\s*\d[\d,]*(?:\.\d+)?\s*$/.test(rawCost)
+        ? Number(rawCost.replace(/[₹,\s]/g, ""))
+        : NaN;
+
+    const budget = Number(trip?.budget);
+    const validBudget = Number.isFinite(budget) && budget >= 0;
+
+    const displayCost =
+      Number.isFinite(parsedCost) && parsedCost >= 0
+        ? parsedCost
+        : validBudget
+        ? budget
+        : null;
+
+    return displayCost !== null
+      ? `₹${displayCost.toLocaleString("en-IN")}`
+      : "Cost estimate unavailable";
+  })()}
+</p>
         </section>
 
         {hotels.length > 0 && (
