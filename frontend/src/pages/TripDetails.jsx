@@ -236,7 +236,7 @@ useEffect(() => {
       : "Cost estimate unavailable";
   })()}
 </p>
-        </section>
+      </section>
 
         {hotels.length > 0 && (
           <section className="trip-section">
