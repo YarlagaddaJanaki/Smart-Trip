@@ -170,8 +170,7 @@ useEffect(() => {
             </div>
             <span className="trip-section-mark" aria-hidden="true">▦</span>
           </div>
-                      <div className="trip-muted-message">No daily itinerary details are available.</div>
-           : (
+                    
             <div className="trip-days-list">
               {days.map((day, index) => (
                 <article className="trip-day-card" key={day.day ?? index}>
